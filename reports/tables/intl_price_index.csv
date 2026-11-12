@@ -1,0 +1,11 @@
+country,apps,median_index,p25,p75,currency,country_name,availability
+ca,391,93.705,87.856,98.405,CAD,Canada,0.978
+jp,380,98.83,94.439,104.707,JPY,Japan,0.95
+us,400,100.0,100.0,100.0,USD,United States,1.0
+cn,286,105.2,102.04,112.997,CNY,China,0.715
+in,377,106.735,106.735,106.735,INR,India,0.942
+au,386,109.829,102.974,114.396,AUD,Australia,0.965
+de,368,111.271,111.271,129.847,EUR,Germany,0.92
+br,376,112.396,107.91,119.779,BRL,Brazil,0.94
+kr,373,117.711,110.073,124.04,KRW,South Korea,0.932
+gb,386,133.069,133.069,133.069,GBP,United Kingdom,0.965

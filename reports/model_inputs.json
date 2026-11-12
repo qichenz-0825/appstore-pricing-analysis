@@ -1,0 +1,425 @@
+{
+ "categories": [
+  {
+   "name": "Finance",
+   "reviews": 139771353,
+   "median_paid": 3.49,
+   "free_share": 1.0
+  },
+  {
+   "name": "Shopping",
+   "reviews": 139026425,
+   "median_paid": 1.99,
+   "free_share": 0.99
+  },
+  {
+   "name": "Food & Drink",
+   "reviews": 123504612,
+   "median_paid": 2.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Photo & Video",
+   "reviews": 120287892,
+   "median_paid": 4.99,
+   "free_share": 0.99
+  },
+  {
+   "name": "Travel",
+   "reviews": 115130674,
+   "median_paid": 2.99,
+   "free_share": 0.96
+  },
+  {
+   "name": "Games",
+   "reviews": 112449532,
+   "median_paid": 3.99,
+   "free_share": 0.99
+  },
+  {
+   "name": "Social Networking",
+   "reviews": 97664444,
+   "median_paid": 1.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Entertainment",
+   "reviews": 88926295,
+   "median_paid": 2.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Music",
+   "reviews": 88706699,
+   "median_paid": 4.99,
+   "free_share": 0.99
+  },
+  {
+   "name": "Productivity",
+   "reviews": 80950226,
+   "median_paid": 4.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Lifestyle",
+   "reviews": 59388988,
+   "median_paid": 3.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Business",
+   "reviews": 53562047,
+   "median_paid": 4.99,
+   "free_share": 0.98
+  },
+  {
+   "name": "Utilities",
+   "reviews": 44064705,
+   "median_paid": 4.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Education",
+   "reviews": 34656987,
+   "median_paid": 4.99,
+   "free_share": 0.99
+  },
+  {
+   "name": "News",
+   "reviews": 32672917,
+   "median_paid": 2.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Health & Fitness",
+   "reviews": 32193471,
+   "median_paid": 4.49,
+   "free_share": 1.0
+  },
+  {
+   "name": "Sports",
+   "reviews": 24991156,
+   "median_paid": 3.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Books",
+   "reviews": 23062245,
+   "median_paid": 3.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Reference",
+   "reviews": 23010454,
+   "median_paid": 3.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Medical",
+   "reviews": 21694303,
+   "median_paid": 5.99,
+   "free_share": 0.93
+  },
+  {
+   "name": "Navigation",
+   "reviews": 17568888,
+   "median_paid": 4.49,
+   "free_share": 0.98
+  },
+  {
+   "name": "Weather",
+   "reviews": 16845549,
+   "median_paid": 2.99,
+   "free_share": 0.96
+  }
+ ],
+ "scenarios": {
+  "Base": {
+   "adv_g": 0.12,
+   "spend_g": 0.08,
+   "nonhc": 0.16,
+   "disc": 0.09
+  },
+  "Upside": {
+   "adv_g": 0.18,
+   "spend_g": 0.12,
+   "nonhc": 0.15,
+   "disc": 0.09
+  },
+  "Downside": {
+   "adv_g": 0.05,
+   "spend_g": 0.02,
+   "nonhc": 0.18,
+   "disc": 0.09
+  }
+ },
+ "advertisers": 60000,
+ "spend": 7000,
+ "mult_int": 0.4,
+ "mult_slope": 0.6,
+ "seasonality": [
+  1.02,
+  1.1,
+  1.22,
+  0.92,
+  0.9,
+  0.96,
+  0.95,
+  0.97,
+  0.98,
+  0.98,
+  0.99,
+  1.01
+ ],
+ "months": [
+  "Oct",
+  "Nov",
+  "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep"
+ ],
+ "functions": [
+  {
+   "name": "Engineering & Ad Platform",
+   "hc": 900,
+   "hires": [
+    30,
+    30,
+    25,
+    25
+   ],
+   "cost": 420000
+  },
+  {
+   "name": "Sales & Account Management",
+   "hc": 650,
+   "hires": [
+    25,
+    20,
+    20,
+    15
+   ],
+   "cost": 300000
+  },
+  {
+   "name": "Marketing & Developer Relations",
+   "hc": 160,
+   "hires": [
+    5,
+    5,
+    5,
+    5
+   ],
+   "cost": 260000
+  },
+  {
+   "name": "Finance, Legal & G&A",
+   "hc": 90,
+   "hires": [
+    3,
+    2,
+    2,
+    2
+   ],
+   "cost": 240000
+  }
+ ],
+ "capex": [
+  45,
+  40,
+  40,
+  50
+ ],
+ "life": 4,
+ "dep_base": 30,
+ "actuals": [
+  {
+   "adv": 6095,
+   "rpa_mult": 1.0544
+  },
+  {
+   "adv": 5980,
+   "rpa_mult": 0.9242
+  },
+  {
+   "adv": 5287,
+   "rpa_mult": 0.9882
+  },
+  {
+   "adv": 4889,
+   "rpa_mult": 1.0784
+  },
+  {
+   "adv": 4621,
+   "rpa_mult": 0.9104
+  },
+  {
+   "adv": 4506,
+   "rpa_mult": 0.9162
+  },
+  {
+   "adv": 3639,
+   "rpa_mult": 0.9898
+  },
+  {
+   "adv": 3722,
+   "rpa_mult": 0.8487
+  },
+  {
+   "adv": 3643,
+   "rpa_mult": 1.0179
+  },
+  {
+   "adv": 3350,
+   "rpa_mult": 0.9111
+  },
+  {
+   "adv": 2399,
+   "rpa_mult": 0.987
+  },
+  {
+   "adv": 2245,
+   "rpa_mult": 0.9099
+  },
+  {
+   "adv": 1843,
+   "rpa_mult": 1.0694
+  },
+  {
+   "adv": 1259,
+   "rpa_mult": 1.0157
+  },
+  {
+   "adv": 1238,
+   "rpa_mult": 0.9881
+  },
+  {
+   "adv": 1276,
+   "rpa_mult": 1.0892
+  },
+  {
+   "adv": 1028,
+   "rpa_mult": 1.0557
+  },
+  {
+   "adv": 897,
+   "rpa_mult": 1.0322
+  },
+  {
+   "adv": 1011,
+   "rpa_mult": 0.9505
+  },
+  {
+   "adv": 920,
+   "rpa_mult": 1.0337
+  },
+  {
+   "adv": 719,
+   "rpa_mult": 0.9124
+  },
+  {
+   "adv": 701,
+   "rpa_mult": 0.9811
+  }
+ ],
+ "markets": [
+  {
+   "code": "gb",
+   "name": "United Kingdom",
+   "currency": "GBP",
+   "index": 133.069,
+   "availability": 0.965,
+   "vat": 0.2,
+   "size": 0.12
+  },
+  {
+   "code": "kr",
+   "name": "South Korea",
+   "currency": "KRW",
+   "index": 117.711,
+   "availability": 0.932,
+   "vat": 0.1,
+   "size": 0.06
+  },
+  {
+   "code": "br",
+   "name": "Brazil",
+   "currency": "BRL",
+   "index": 112.396,
+   "availability": 0.94,
+   "vat": 0.0,
+   "size": 0.06
+  },
+  {
+   "code": "de",
+   "name": "Germany",
+   "currency": "EUR",
+   "index": 111.271,
+   "availability": 0.92,
+   "vat": 0.19,
+   "size": 0.09
+  },
+  {
+   "code": "au",
+   "name": "Australia",
+   "currency": "AUD",
+   "index": 109.829,
+   "availability": 0.965,
+   "vat": 0.1,
+   "size": 0.05
+  },
+  {
+   "code": "in",
+   "name": "India",
+   "currency": "INR",
+   "index": 106.735,
+   "availability": 0.942,
+   "vat": 0.18,
+   "size": 0.07
+  },
+  {
+   "code": "cn",
+   "name": "China",
+   "currency": "CNY",
+   "index": 105.2,
+   "availability": 0.715,
+   "vat": 0.06,
+   "size": 0.22
+  },
+  {
+   "code": "jp",
+   "name": "Japan",
+   "currency": "JPY",
+   "index": 98.83,
+   "availability": 0.95,
+   "vat": 0.1,
+   "size": 0.16
+  },
+  {
+   "code": "ca",
+   "name": "Canada",
+   "currency": "CAD",
+   "index": 93.705,
+   "availability": 0.978,
+   "vat": 0.0,
+   "size": 0.07
+  }
+ ],
+ "invest": {
+  "upfront": 15,
+  "opex": 8,
+  "capture": [
+   0.04,
+   0.08,
+   0.12
+  ],
+  "margin": 0.8
+ }
+}

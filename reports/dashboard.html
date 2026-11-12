@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apple Ads FP&amp;A Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --surface: #fcfcfb; --surface-2: #f3f2ee; --border: #e3e1da;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #8a8984; --grid: #ebe9e3;
+  --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a;
+  --pos: #1baf7a; --neg: #e34948; --ref: #8a8984;
+  --seq-0: #f1f6fd; --seq-1: #9ec5f4; --seq-2: #3987e5; --seq-3: #104281;
+  --accent-ink: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface: #1a1a19; --surface-2: #232322; --border: #34342f;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86; --grid: #2c2c29;
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
+    --pos: #199e70; --neg: #e66767; --ref: #8f8e86;
+    --seq-0: #1d2633; --seq-1: #184f95; --seq-2: #3987e5; --seq-3: #b7d3f6;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #1a1a19; --surface-2: #232322; --border: #34342f;
+  --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86; --grid: #2c2c29;
+  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70;
+  --pos: #199e70; --neg: #e66767; --ref: #8f8e86;
+  --seq-0: #1d2633; --seq-1: #184f95; --seq-2: #3987e5; --seq-3: #b7d3f6;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--surface); color: var(--text-primary);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; }
+header { padding: 24px 16px 0; max-width: 1240px; margin: 0 auto; }
+h1 { font-size: 24px; margin: 0; letter-spacing: -0.01em; }
+.sub { color: var(--text-secondary); font-size: 13px; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 16px; display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+@media (max-width: 860px) { .wrap { grid-template-columns: 1fr; } }
+aside { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; align-self: start; position: sticky; top: 12px; }
+@media (max-width: 860px) { aside { position: static; } }
+aside h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin: 16px 0 8px; }
+aside h3:first-child { margin-top: 0; }
+.seg { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button { flex: 1; border: 0; background: transparent; color: var(--text-secondary); padding: 7px 4px; font: inherit; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--border); }
+.seg button.on { background: var(--series-1); color: var(--accent-ink); font-weight: 600; }
+.ctl { margin: 10px 0; }
+.ctl label { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-secondary); }
+.ctl label b { color: var(--text-primary); font-variant-numeric: tabular-nums; font-weight: 600; }
+input[type=range] { width: 100%; accent-color: var(--series-1); }
+.chk { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-secondary); margin: 8px 0; }
+.reset { width: 100%; margin-top: 8px; padding: 7px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-primary); font: inherit; cursor: pointer; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; overflow-x: auto; }
+.tabs button { border: 0; background: none; padding: 10px 12px; font: inherit; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+.tabs button.on { color: var(--text-primary); border-bottom-color: var(--series-1); font-weight: 600; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 10px; margin-bottom: 18px; }
+.kpi { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--surface); }
+.kpi .v { font-size: 20px; font-weight: 650; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.kpi .l { font-size: 12px; color: var(--text-secondary); }
+.kpi .d { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 1000px) { .grid2 { grid-template-columns: 1fr; } }
+.card { border: 1px solid var(--border); border-radius: 12px; padding: 14px 14px 6px; margin-bottom: 18px; min-width: 0; }
+.card h2 { font-size: 15px; margin: 0; }
+.card .note { font-size: 12px; color: var(--text-secondary); margin: 2px 0 4px; }
+.tw { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 12.5px; width: 100%; font-variant-numeric: tabular-nums; margin: 6px 0 10px; }
+th, td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--text-secondary); font-weight: 600; cursor: pointer; user-select: none; }
+td.pos { color: var(--pos); } td.neg { color: var(--neg); }
+.pane { display: none; } .pane.on { display: block; }
+.callout { background: var(--surface-2); border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 18px; }
+footer { max-width: 1240px; margin: 0 auto; padding: 8px 16px 40px; color: var(--text-muted); font-size: 12px; }
+a { color: var(--series-1); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Apple Ads FP&amp;A Dashboard — FY27 Plan</h1>
+  <div class="sub">Driver-based plan using live App Store data (5,805 apps, pulled 2026-11-11). Financial inputs are illustrative. Same logic as <code>Apple_Ads_FPA_Model.xlsx</code>.</div>
+</header>
+
+<div class="wrap">
+  <aside>
+    <h3>Scenario</h3>
+    <div class="seg" id="scen">
+      <button data-s="Downside">Downside</button><button data-s="Base" class="on">Base</button><button data-s="Upside">Upside</button>
+    </div>
+    <h3>Revenue drivers</h3>
+    <div class="ctl"><label>Advertiser growth (YoY) <b id="v_adv_g"></b></label><input type="range" id="adv_g" min="-0.05" max="0.30" step="0.01"></div>
+    <div class="ctl"><label>Spend / advertiser growth <b id="v_spend_g"></b></label><input type="range" id="spend_g" min="-0.05" max="0.25" step="0.01"></div>
+    <div class="ctl"><label>FY26 advertisers <b id="v_advertisers"></b></label><input type="range" id="advertisers" min="30000" max="120000" step="1000"></div>
+    <div class="ctl"><label>FY26 spend / adv / month <b id="v_spend"></b></label><input type="range" id="spend" min="3000" max="15000" step="250"></div>
+    <div class="ctl"><label>Willingness-to-pay weight <b id="v_slope"></b></label><input type="range" id="slope" min="0" max="1" step="0.05"></div>
+    <h3>Cost drivers</h3>
+    <div class="ctl"><label>Non-HC opex % of revenue <b id="v_nonhc"></b></label><input type="range" id="nonhc" min="0.08" max="0.35" step="0.01"></div>
+    <div class="ctl"><label>Hiring plan vs base <b id="v_hire"></b></label><input type="range" id="hire" min="0" max="2" step="0.1"></div>
+    <h3>Market investment</h3>
+    <div class="ctl"><label>Share capture (yr 3) <b id="v_cap"></b></label><input type="range" id="cap" min="0.02" max="0.25" step="0.01"></div>
+    <div class="ctl"><label>Upfront cost / market ($mm) <b id="v_upfront"></b></label><input type="range" id="upfront" min="0" max="60" step="1"></div>
+    <label class="chk"><input type="checkbox" id="vat" checked> Strip VAT/GST from price index</label>
+    <button class="reset" id="reset">Reset to scenario</button>
+  </aside>
+
+  <main>
+    <div class="kpis" id="kpis"></div>
+    <div class="tabs" id="tabs">
+      <button data-t="plan" class="on">Plan &amp; P&amp;L</button>
+      <button data-t="var">Budget vs actual</button>
+      <button data-t="mkt">Market investment</button>
+      <button data-t="sens">Sensitivity</button>
+      <button data-t="data">App Store drivers</button>
+    </div>
+
+    <section class="pane on" id="p-plan">
+      <div class="card"><h2>Monthly ad revenue ($mm)</h2><div class="note">Current settings vs Base-case budget. Dec peak = holiday seasonality.</div><div id="c_month"></div></div>
+      <div class="grid2">
+        <div class="card"><h2>Quarterly P&amp;L ($mm)</h2><div class="note">Revenue and operating income by fiscal quarter.</div><div id="c_pnl"></div></div>
+        <div class="card"><h2>FY27 revenue by category ($mm)</h2><div class="note">Click a bar to see its Q1 variance.</div><div id="c_cat"></div></div>
+      </div>
+      <div class="card"><h2>P&amp;L table ($mm)</h2><div class="tw" id="t_pnl"></div></div>
+    </section>
+
+    <section class="pane" id="p-var">
+      <div class="callout" id="var_text"></div>
+      <div class="grid2">
+        <div class="card"><h2>Q1 revenue bridge ($mm)</h2><div class="note">Budget → volume (advertisers) → rate (spend/adv) → actual.</div><div id="c_bridge"></div></div>
+        <div class="card"><h2>Variance by category ($mm)</h2><div class="note">Sorted; positive = favorable.</div><div id="c_varcat"></div></div>
+      </div>
+      <div class="card"><h2>Variance detail</h2><div class="note">Click a column header to sort. Actuals are illustrative demo values.</div><div class="tw" id="t_var"></div></div>
+    </section>
+
+    <section class="pane" id="p-mkt">
+      <div class="callout" id="mkt_text"></div>
+      <div class="grid2">
+        <div class="card"><h2>3-year NPV by storefront ($mm)</h2><div class="note">Incremental sales investment, discounted at the scenario rate.</div><div id="c_npv"></div></div>
+        <div class="card"><h2>Price index: gross vs tax-adjusted (US = 100)</h2><div class="note">Same paid app, USD-converted. VAT/GST inflates UK/EU/APAC sticker prices.</div><div id="c_idx"></div></div>
+      </div>
+      <div class="card"><h2>Investment case detail</h2><div class="tw" id="t_mkt"></div></div>
+    </section>
+
+    <section class="pane" id="p-sens">
+      <div class="card"><h2>FY27 revenue ($mm): advertiser growth × spend growth</h2><div class="note">Ringed cell = current settings. Hover any cell for the value.</div><div id="c_sens"></div></div>
+    </section>
+
+    <section class="pane" id="p-data">
+      <div class="callout">Demand drivers from the App Store data. <b>Engagement share</b> (ratings volume of top free + grossing apps) sizes each category's advertiser pool; <b>willingness-to-pay index</b> (median paid price ÷ average) scales spend per advertiser. Full pricing analysis: <a href="report.html">report.html</a>.</div>
+      <div class="card"><h2>Category drivers</h2><div class="note">Bubble size = FY27 revenue under current settings.</div><div id="c_drv"></div></div>
+      <div class="card"><h2>Driver table</h2><div class="tw" id="t_drv"></div></div>
+    </section>
+  </main>
+</div>
+<footer>Sources: Apple iTunes RSS top charts &amp; Lookup API; ECB FX. Apple does not disclose Apple Ads financials — revenue, advertiser, cost and actuals inputs are illustrative. Regulatory availability of Apple Ads by storefront is not modeled.</footer>
+
+<script>
+const D = {
+ "categories": [
+  {
+   "name": "Finance",
+   "reviews": 139771353,
+   "median_paid": 3.49,
+   "free_share": 1.0
+  },
+  {
+   "name": "Shopping",
+   "reviews": 139026425,
+   "median_paid": 1.99,
+   "free_share": 0.99
+  },
+  {
+   "name": "Food & Drink",
+   "reviews": 123504612,
+   "median_paid": 2.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Photo & Video",
+   "reviews": 120287892,
+   "median_paid": 4.99,
+   "free_share": 0.99
+  },
+  {
+   "name": "Travel",
+   "reviews": 115130674,
+   "median_paid": 2.99,
+   "free_share": 0.96
+  },
+  {
+   "name": "Games",
+   "reviews": 112449532,
+   "median_paid": 3.99,
+   "free_share": 0.99
+  },
+  {
+   "name": "Social Networking",
+   "reviews": 97664444,
+   "median_paid": 1.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Entertainment",
+   "reviews": 88926295,
+   "median_paid": 2.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Music",
+   "reviews": 88706699,
+   "median_paid": 4.99,
+   "free_share": 0.99
+  },
+  {
+   "name": "Productivity",
+   "reviews": 80950226,
+   "median_paid": 4.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Lifestyle",
+   "reviews": 59388988,
+   "median_paid": 3.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Business",
+   "reviews": 53562047,
+   "median_paid": 4.99,
+   "free_share": 0.98
+  },
+  {
+   "name": "Utilities",
+   "reviews": 44064705,
+   "median_paid": 4.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Education",
+   "reviews": 34656987,
+   "median_paid": 4.99,
+   "free_share": 0.99
+  },
+  {
+   "name": "News",
+   "reviews": 32672917,
+   "median_paid": 2.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Health & Fitness",
+   "reviews": 32193471,
+   "median_paid": 4.49,
+   "free_share": 1.0
+  },
+  {
+   "name": "Sports",
+   "reviews": 24991156,
+   "median_paid": 3.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Books",
+   "reviews": 23062245,
+   "median_paid": 3.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Reference",
+   "reviews": 23010454,
+   "median_paid": 3.99,
+   "free_share": 1.0
+  },
+  {
+   "name": "Medical",
+   "reviews": 21694303,
+   "median_paid": 5.99,
+   "free_share": 0.93
+  },
+  {
+   "name": "Navigation",
+   "reviews": 17568888,
+   "median_paid": 4.49,
+   "free_share": 0.98
+  },
+  {
+   "name": "Weather",
+   "reviews": 16845549,
+   "median_paid": 2.99,
+   "free_share": 0.96
+  }
+ ],
+ "scenarios": {
+  "Base": {
+   "adv_g": 0.12,
+   "spend_g": 0.08,
+   "nonhc": 0.16,
+   "disc": 0.09
+  },
+  "Upside": {
+   "adv_g": 0.18,
+   "spend_g": 0.12,
+   "nonhc": 0.15,
+   "disc": 0.09
+  },
+  "Downside": {
+   "adv_g": 0.05,
+   "spend_g": 0.02,
+   "nonhc": 0.18,
+   "disc": 0.09
+  }
+ },
+ "advertisers": 60000,
+ "spend": 7000,
+ "mult_int": 0.4,
+ "mult_slope": 0.6,
+ "seasonality": [
+  1.02,
+  1.1,
+  1.22,
+  0.92,
+  0.9,
+  0.96,
+  0.95,
+  0.97,
+  0.98,
+  0.98,
+  0.99,
+  1.01
+ ],
+ "months": [
+  "Oct",
+  "Nov",
+  "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep"
+ ],
+ "functions": [
+  {
+   "name": "Engineering & Ad Platform",
+   "hc": 900,
+   "hires": [
+    30,
+    30,
+    25,
+    25
+   ],
+   "cost": 420000
+  },
+  {
+   "name": "Sales & Account Management",
+   "hc": 650,
+   "hires": [
+    25,
+    20,
+    20,
+    15
+   ],
+   "cost": 300000
+  },
+  {
+   "name": "Marketing & Developer Relations",
+   "hc": 160,
+   "hires": [
+    5,
+    5,
+    5,
+    5
+   ],
+   "cost": 260000
+  },
+  {
+   "name": "Finance, Legal & G&A",
+   "hc": 90,
+   "hires": [
+    3,
+    2,
+    2,
+    2
+   ],
+   "cost": 240000
+  }
+ ],
+ "capex": [
+  45,
+  40,
+  40,
+  50
+ ],
+ "life": 4,
+ "dep_base": 30,
+ "actuals": [
+  {
+   "adv": 6095,
+   "rpa_mult": 1.0544
+  },
+  {
+   "adv": 5980,
+   "rpa_mult": 0.9242
+  },
+  {
+   "adv": 5287,
+   "rpa_mult": 0.9882
+  },
+  {
+   "adv": 4889,
+   "rpa_mult": 1.0784
+  },
+  {
+   "adv": 4621,
+   "rpa_mult": 0.9104
+  },
+  {
+   "adv": 4506,
+   "rpa_mult": 0.9162
+  },
+  {
+   "adv": 3639,
+   "rpa_mult": 0.9898
+  },
+  {
+   "adv": 3722,
+   "rpa_mult": 0.8487
+  },
+  {
+   "adv": 3643,
+   "rpa_mult": 1.0179
+  },
+  {
+   "adv": 3350,
+   "rpa_mult": 0.9111
+  },
+  {
+   "adv": 2399,
+   "rpa_mult": 0.987
+  },
+  {
+   "adv": 2245,
+   "rpa_mult": 0.9099
+  },
+  {
+   "adv": 1843,
+   "rpa_mult": 1.0694
+  },
+  {
+   "adv": 1259,
+   "rpa_mult": 1.0157
+  },
+  {
+   "adv": 1238,
+   "rpa_mult": 0.9881
+  },
+  {
+   "adv": 1276,
+   "rpa_mult": 1.0892
+  },
+  {
+   "adv": 1028,
+   "rpa_mult": 1.0557
+  },
+  {
+   "adv": 897,
+   "rpa_mult": 1.0322
+  },
+  {
+   "adv": 1011,
+   "rpa_mult": 0.9505
+  },
+  {
+   "adv": 920,
+   "rpa_mult": 1.0337
+  },
+  {
+   "adv": 719,
+   "rpa_mult": 0.9124
+  },
+  {
+   "adv": 701,
+   "rpa_mult": 0.9811
+  }
+ ],
+ "markets": [
+  {
+   "code": "gb",
+   "name": "United Kingdom",
+   "currency": "GBP",
+   "index": 133.069,
+   "availability": 0.965,
+   "vat": 0.2,
+   "size": 0.12
+  },
+  {
+   "code": "kr",
+   "name": "South Korea",
+   "currency": "KRW",
+   "index": 117.711,
+   "availability": 0.932,
+   "vat": 0.1,
+   "size": 0.06
+  },
+  {
+   "code": "br",
+   "name": "Brazil",
+   "currency": "BRL",
+   "index": 112.396,
+   "availability": 0.94,
+   "vat": 0.0,
+   "size": 0.06
+  },
+  {
+   "code": "de",
+   "name": "Germany",
+   "currency": "EUR",
+   "index": 111.271,
+   "availability": 0.92,
+   "vat": 0.19,
+   "size": 0.09
+  },
+  {
+   "code": "au",
+   "name": "Australia",
+   "currency": "AUD",
+   "index": 109.829,
+   "availability": 0.965,
+   "vat": 0.1,
+   "size": 0.05
+  },
+  {
+   "code": "in",
+   "name": "India",
+   "currency": "INR",
+   "index": 106.735,
+   "availability": 0.942,
+   "vat": 0.18,
+   "size": 0.07
+  },
+  {
+   "code": "cn",
+   "name": "China",
+   "currency": "CNY",
+   "index": 105.2,
+   "availability": 0.715,
+   "vat": 0.06,
+   "size": 0.22
+  },
+  {
+   "code": "jp",
+   "name": "Japan",
+   "currency": "JPY",
+   "index": 98.83,
+   "availability": 0.95,
+   "vat": 0.1,
+   "size": 0.16
+  },
+  {
+   "code": "ca",
+   "name": "Canada",
+   "currency": "CAD",
+   "index": 93.705,
+   "availability": 0.978,
+   "vat": 0.0,
+   "size": 0.07
+  }
+ ],
+ "invest": {
+  "upfront": 15,
+  "opex": 8,
+  "capture": [
+   0.04,
+   0.08,
+   0.12
+  ],
+  "margin": 0.8
+ }
+};
+const $ = id => document.getElementById(id);
+const fmt$ = (v, d = 1) => (v < 0 ? "−$" : "$") + Math.abs(v).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+const fmtP = (v, d = 1) => (v * 100).toFixed(d) + "%";
+const fmtN = v => Math.round(v).toLocaleString();
+const sum = a => a.reduce((x, y) => x + y, 0);
+
+// ---------- state ----------
+let S = {};
+function setScenario(name) {
+  const s = D.scenarios[name];
+  S = { scen: name, adv_g: s.adv_g, spend_g: s.spend_g, nonhc: s.nonhc, disc: s.disc,
+        advertisers: D.advertisers, spend: D.spend, slope: D.mult_slope, hire: 1,
+        cap: D.invest.capture[2], upfront: D.invest.upfront, vat: true };
+  document.querySelectorAll("#scen button").forEach(b => b.classList.toggle("on", b.dataset.s === name));
+  syncControls(); update();
+}
+const CTL = { adv_g: fmtP, spend_g: fmtP, nonhc: fmtP, advertisers: fmtN, spend: v => fmt$(v, 0),
+              slope: v => v.toFixed(2), hire: v => v.toFixed(1) + "×", cap: fmtP, upfront: v => fmt$(v, 0) };
+function syncControls() {
+  for (const k in CTL) { $(k).value = S[k]; $("v_" + k).textContent = CTL[k](S[k]); }
+  $("vat").checked = S.vat;
+}
+
+// ---------- model (mirrors the Excel formulas) ----------
+function model(p) {
+  const C = D.categories, A = p.advertisers, SP = p.spend;
+  const totRev = sum(C.map(c => c.reviews));
+  const avgPaid = sum(C.map(c => c.median_paid)) / C.length;
+  const intercept = D.mult_int + (D.mult_slope - p.slope); // keeps the multiplier centred near 1
+  const rows = C.map(c => {
+    const share = c.reviews / totRev, wtp = c.median_paid / avgPaid;
+    const adv0 = A * share, raw = SP * (intercept + p.slope * wtp);
+    return { name: c.name, share, wtp, adv0, raw, free_share: c.free_share, median_paid: c.median_paid };
+  });
+  const norm = A * SP / sum(rows.map(r => r.adv0 * r.raw));
+  const g = m => Math.pow(1 + p.adv_g, m / 12) * Math.pow(1 + p.spend_g, m / 12);
+  rows.forEach(r => {
+    r.spa = r.raw * norm;
+    r.months = D.seasonality.map((s, i) => r.adv0 * r.spa * g(i + 1) * s / 1e6);
+    r.q = [0, 1, 2, 3].map(q => sum(r.months.slice(q * 3, q * 3 + 3)));
+    r.fy = sum(r.months);
+  });
+  const months = D.seasonality.map((_, i) => sum(rows.map(r => r.months[i])));
+  const advM = D.seasonality.map((_, i) => A * Math.pow(1 + p.adv_g, (i + 1) / 12));
+  const revQ = [0, 1, 2, 3].map(q => sum(months.slice(q * 3, q * 3 + 3)));
+  const fy = sum(months), runrate = A * SP * 12 / 1e6;
+
+  // headcount & people cost
+  let hcEnd = [0, 0, 0, 0], people = [0, 0, 0, 0];
+  D.functions.forEach(f => {
+    let prev = f.hc;
+    for (let q = 0; q < 4; q++) {
+      const end = prev + f.hires[q] * p.hire;
+      people[q] += (prev + end) / 2 * f.cost / 4 / 1e6; hcEnd[q] += end; prev = end;
+    }
+  });
+  const dep = [0, 1, 2, 3].map(q => D.dep_base + (sum(D.capex.slice(0, q)) + D.capex[q] / 2) / (D.life * 4));
+  const nonhc = revQ.map(r => r * p.nonhc);
+  const oi = revQ.map((r, q) => r - people[q] - nonhc[q] - dep[q]);
+
+  // budget vs actual (Q1): budget = this model, actual advertisers fixed, actual rate = budget rate x multiplier
+  const advQ1 = (advM[0] + advM[1] + advM[2]) / 3;
+  const bva = rows.map((r, i) => {
+    const bRev = r.q[0], bAdv = advQ1 * r.share, bRpa = bRev * 1e6 / bAdv;
+    const aAdv = D.actuals[i].adv, aRpa = Math.round(bRpa * D.actuals[i].rpa_mult), aRev = aAdv * aRpa / 1e6;
+    return { name: r.name, bRev, bAdv, bRpa, aAdv, aRpa, aRev, var: aRev - bRev,
+             vol: (aAdv - bAdv) * bRpa / 1e6, rate: (aRpa - bRpa) * aAdv / 1e6 };
+  });
+
+  // market investment
+  const usRpa = fy * 1e6 / advM[11];
+  const cap = [p.cap / 3, p.cap * 2 / 3, p.cap];
+  const mkts = D.markets.map(m => {
+    const net = p.vat ? m.index / (1 + m.vat) : m.index;
+    const adv = A * m.size * m.availability, rpa = usRpa * net / 100, spend = adv * rpa / 1e6;
+    const rev = cap.map(c => spend * c);
+    const cf = rev.map(r => r * D.invest.margin - D.invest.opex);
+    const npv = -p.upfront + sum(cf.map((c, t) => c / Math.pow(1 + p.disc, t + 1)));
+    let pay = null, cum = 0;
+    for (let t = 0; t < 3; t++) { if (cf[t] > 0 && cum + cf[t] >= p.upfront) { pay = t + (p.upfront - cum) / cf[t]; break; } cum += cf[t]; }
+    return { ...m, net, adv, rpa, spend, rev, npv, pay };
+  }).sort((a, b) => b.npv - a.npv);
+
+  return { rows, months, advM, revQ, fy, runrate, hcEnd, people, dep, nonhc, oi, bva, mkts, usRpa };
+}
+function sensGrid(p) {
+  const rr = p.advertisers * p.spend / 1e6;
+  const ag = [-0.05, 0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30], sg = [-0.05, 0, 0.04, 0.08, 0.12, 0.16, 0.20, 0.25];
+  const z = ag.map(a => sg.map(s => rr * sum(D.seasonality.map((x, i) => x * Math.pow((1 + a) * (1 + s), (i + 1) / 12)))));
+  return { ag, sg, z };
+}
+
+// ---------- rendering ----------
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function layout(extra = {}) {
+  const ax = { gridcolor: css("--grid"), zerolinecolor: css("--border"), linecolor: css("--border"), automargin: true };
+  return Object.assign({
+    paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", height: 300,
+    font: { family: getComputedStyle(document.body).fontFamily, size: 11.5, color: css("--text-secondary") },
+    margin: { l: 8, r: 16, t: (extra.showlegend ? 34 : 8), b: 36 }, showlegend: false,
+    hoverlabel: { bgcolor: css("--surface-2"), bordercolor: css("--border"), font: { color: css("--text-primary") } },
+    legend: { orientation: "h", y: 1.02, yanchor: "bottom", x: 0 },
+  }, extra, { xaxis: Object.assign({}, ax, extra.xaxis || {}), yaxis: Object.assign({}, ax, extra.yaxis || {}) });
+}
+const CFG = { displayModeBar: false };
+const plot = (id, data, lay) => {
+  const el = $(id);
+  if (!el.offsetParent) return; // hidden pane: rendered when its tab is shown
+  Plotly.react(el, data, Object.assign(layout(lay), { width: el.clientWidth }), CFG);
+};
+let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => M && update(), 150); });
+
+let BASE = null, M = null, selectedCat = null;
+function update() {
+  M = model(S);
+  BASE = model({ ...S, ...D.scenarios.Base, advertisers: D.advertisers, spend: D.spend, slope: D.mult_slope, hire: 1 });
+  renderKpis(); renderPlan(); renderVar(); renderMkt(); renderSens(); renderData();
+}
+
+function renderKpis() {
+  const op = sum(M.oi), yoy = M.fy / M.runrate - 1, dv = M.fy - BASE.fy;
+  const bv = sum(M.bva.map(b => b.var));
+  const k = [
+    [fmt$(M.fy, 0) + "mm", "FY27 ad revenue", (dv >= 0 ? "+" : "") + fmt$(dv, 0) + "mm vs Base"],
+    [fmtP(yoy), "YoY vs FY26 run-rate", "run-rate " + fmt$(M.runrate, 0) + "mm"],
+    [fmt$(op, 0) + "mm", "Operating income", "margin " + fmtP(op / M.fy)],
+    [fmtN(M.hcEnd[3]), "Exit headcount", "people cost " + fmt$(sum(M.people), 0) + "mm"],
+    [fmt$(bv, 1) + "mm", "Q1 variance vs budget", fmtP(bv / M.revQ[0]) + " of budget"],
+    [M.mkts[0].name, "Top market to invest", "NPV " + fmt$(M.mkts[0].npv, 1) + "mm"],
+  ];
+  $("kpis").innerHTML = k.map(([v, l, d]) => `<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
+}
+
+function renderPlan() {
+  plot("c_month", [
+    { type: "scatter", mode: "lines+markers", name: "Current", x: D.months, y: M.months, line: { color: css("--series-1"), width: 2 },
+      marker: { size: 8, color: css("--series-1"), line: { width: 2, color: css("--surface") } }, hovertemplate: "%{x}: $%{y:,.1f}mm<extra>Current</extra>" },
+    { type: "scatter", mode: "lines", name: "Base budget", x: D.months, y: BASE.months, line: { color: css("--ref"), width: 2, dash: "dot" },
+      hovertemplate: "%{x}: $%{y:,.1f}mm<extra>Base budget</extra>" },
+  ], { showlegend: true, yaxis: { tickprefix: "$", rangemode: "tozero" }, hovermode: "x unified" });
+
+  const Q = ["Q1", "Q2", "Q3", "Q4"];
+  plot("c_pnl", [
+    { type: "bar", name: "Revenue", x: Q, y: M.revQ, marker: { color: css("--series-1") }, hovertemplate: "%{x} revenue $%{y:,.1f}mm<extra></extra>" },
+    { type: "bar", name: "Operating income", x: Q, y: M.oi, marker: { color: css("--series-3") },
+      customdata: M.oi.map((o, i) => o / M.revQ[i]), hovertemplate: "%{x} op. income $%{y:,.1f}mm · margin %{customdata:.1%}<extra></extra>" },
+  ], { showlegend: true, barmode: "group", bargap: 0.3, bargroupgap: 0.08, yaxis: { tickprefix: "$" } });
+
+  const rs = [...M.rows].sort((a, b) => a.fy - b.fy);
+  plot("c_cat", [{ type: "bar", orientation: "h", y: rs.map(r => r.name), x: rs.map(r => r.fy),
+    marker: { color: rs.map(r => r.name === selectedCat ? css("--series-2") : css("--series-1")) },
+    hovertemplate: "%{y}: $%{x:,.1f}mm<extra></extra>" }],
+    { height: Math.max(300, rs.length * 19 + 40), bargap: 0.3, xaxis: { tickprefix: "$" }, yaxis: { tickfont: { size: 11 } } });
+  const cc = $("c_cat");
+  if (cc.on && !cc._bound) cc._bound = true, cc.on("plotly_click", e => { selectedCat = e.points[0].y; showTab("var"); renderPlan(); renderVar(); });
+
+  const lines = [["Ad revenue", M.revQ], ["People cost", M.people.map(x => -x)], ["Non-HC opex", M.nonhc.map(x => -x)],
+                 ["Depreciation", M.dep.map(x => -x)], ["Operating income", M.oi]];
+  let h = "<table><thead><tr><th></th><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th><th>FY27</th></tr></thead><tbody>";
+  lines.forEach(([l, v]) => { h += `<tr><td>${l === "Operating income" ? "<b>" + l + "</b>" : l}</td>${[...v, sum(v)].map(x => `<td>${fmt$(x)}</td>`).join("")}</tr>`; });
+  h += `<tr><td>Operating margin</td>${[...M.oi.map((o, i) => o / M.revQ[i]), sum(M.oi) / M.fy].map(x => `<td>${fmtP(x)}</td>`).join("")}</tr>`;
+  h += `<tr><td>Ending headcount</td>${[...M.hcEnd, M.hcEnd[3]].map(x => `<td>${fmtN(x)}</td>`).join("")}</tr></tbody></table>`;
+  $("t_pnl").innerHTML = h;
+}
+
+let varSort = { k: "var", dir: 1 };
+function renderVar() {
+  const b = M.bva, bud = sum(b.map(x => x.bRev)), act = sum(b.map(x => x.aRev));
+  const vol = sum(b.map(x => x.vol)), rate = sum(b.map(x => x.rate));
+  const top = [...b].sort((x, y) => Math.abs(y.var) - Math.abs(x.var)).slice(0, 3);
+  $("var_text").innerHTML = `<b>Q1 FY27:</b> actual ${fmt$(act)}mm vs budget ${fmt$(bud)}mm → ${fmt$(act - bud)}mm (${fmtP((act - bud) / bud)}). ` +
+    `Volume (advertiser count) contributed ${fmt$(vol)}mm; rate (spend per advertiser) ${fmt$(rate)}mm. ` +
+    `Largest drivers: ${top.map(t => `${t.name} (${fmt$(t.var)}mm)`).join(", ")}.` +
+    (selectedCat ? ` <br>Selected: <b>${selectedCat}</b> — ${(() => { const s = b.find(x => x.name === selectedCat); return `budget ${fmt$(s.bRev)}mm, actual ${fmt$(s.aRev)}mm, volume ${fmt$(s.vol, 2)}mm, rate ${fmt$(s.rate, 2)}mm`; })()}.` : "");
+
+  plot("c_bridge", [{ type: "waterfall", x: ["Budget", "Volume", "Rate", "Actual"], measure: ["absolute", "relative", "relative", "total"],
+    y: [bud, vol, rate, act], text: [bud, vol, rate, act].map(v => fmt$(v)), textposition: "outside", cliponaxis: false,
+    textfont: { color: css("--text-primary") },
+    increasing: { marker: { color: css("--pos") } }, decreasing: { marker: { color: css("--neg") } }, totals: { marker: { color: css("--series-1") } },
+    connector: { line: { color: css("--border"), width: 1 } }, hovertemplate: "%{x}: $%{y:,.1f}mm<extra></extra>" }],
+    { yaxis: { tickprefix: "$", range: [Math.min(bud, act) * 0.96, Math.max(bud, act) * 1.03] } });
+
+  const s = [...b].sort((x, y) => x.var - y.var);
+  plot("c_varcat", [{ type: "bar", orientation: "h", y: s.map(x => x.name), x: s.map(x => x.var),
+    marker: { color: s.map(x => x.name === selectedCat ? css("--series-2") : x.var >= 0 ? css("--pos") : css("--neg")) },
+    customdata: s.map(x => [x.vol, x.rate]),
+    hovertemplate: "%{y}: $%{x:,.2f}mm<br>volume $%{customdata[0]:,.2f} · rate $%{customdata[1]:,.2f}<extra></extra>" }],
+    { height: Math.max(300, s.length * 19 + 40), bargap: 0.3, xaxis: { tickprefix: "$" }, yaxis: { tickfont: { size: 11 } } });
+
+  const cols = [["name", "Category"], ["bRev", "Budget $mm"], ["aRev", "Actual $mm"], ["var", "Var $mm"], ["pct", "Var %"],
+                ["vol", "Volume $mm"], ["rate", "Rate $mm"], ["bAdv", "Bud adv"], ["aAdv", "Act adv"], ["bRpa", "Bud $/adv"], ["aRpa", "Act $/adv"]];
+  const rows = b.map(x => ({ ...x, pct: x.var / x.bRev }))
+    .sort((x, y) => (typeof x[varSort.k] === "string" ? x[varSort.k].localeCompare(y[varSort.k]) : x[varSort.k] - y[varSort.k]) * varSort.dir);
+  const f = (k, v) => k === "name" ? v : k === "pct" ? fmtP(v) : ["bAdv", "aAdv"].includes(k) ? fmtN(v) : ["bRpa", "aRpa"].includes(k) ? fmt$(v, 0) : fmt$(v, 2);
+  const cls = (k, v) => ["var", "pct", "vol", "rate"].includes(k) ? (v >= 0 ? "pos" : "neg") : "";
+  $("t_var").innerHTML = `<table><thead><tr>${cols.map(([k, l]) => `<th data-k="${k}">${l}${varSort.k === k ? (varSort.dir > 0 ? " ↑" : " ↓") : ""}</th>`).join("")}</tr></thead><tbody>` +
+    rows.map(r => `<tr${r.name === selectedCat ? ' style="font-weight:600"' : ""}>${cols.map(([k]) => `<td class="${cls(k, r[k])}">${f(k, r[k])}</td>`).join("")}</tr>`).join("") +
+    `<tr><td><b>Total</b></td><td>${fmt$(bud, 2)}</td><td>${fmt$(act, 2)}</td><td class="${act >= bud ? "pos" : "neg"}">${fmt$(act - bud, 2)}</td><td>${fmtP((act - bud) / bud)}</td><td>${fmt$(vol, 2)}</td><td>${fmt$(rate, 2)}</td><td colspan="4"></td></tr></tbody></table>`;
+  $("t_var").querySelectorAll("th").forEach(th => th.onclick = () => {
+    const k = th.dataset.k; varSort = { k, dir: varSort.k === k ? -varSort.dir : (k === "name" ? 1 : -1) }; renderVar();
+  });
+}
+
+function renderMkt() {
+  const m = M.mkts;
+  $("mkt_text").innerHTML = `<b>Recommendation:</b> prioritize <b>${m[0].name}</b> (NPV ${fmt$(m[0].npv)}mm` +
+    (m[0].pay != null ? `, payback ${m[0].pay.toFixed(1)} yrs` : "") + `), then ${m[1].name} and ${m[2].name}. ` +
+    `${m.filter(x => x.npv < 0).length} of ${m.length} markets are NPV-negative at current settings. ` +
+    (S.vat ? "Index is VAT/GST-adjusted." : "<b>Warning:</b> using tax-inclusive sticker prices overstates UK/EU/APAC willingness-to-pay.");
+  const s = [...m].sort((a, b) => a.npv - b.npv);
+  plot("c_npv", [{ type: "bar", orientation: "h", y: s.map(x => x.name), x: s.map(x => x.npv),
+    marker: { color: s.map(x => x.npv >= 0 ? css("--series-1") : css("--neg")) },
+    customdata: s.map(x => [x.spend, x.pay == null ? ">3" : x.pay.toFixed(1)]),
+    hovertemplate: "%{y}: NPV $%{x:,.1f}mm<br>addressable spend $%{customdata[0]:,.0f}mm · payback %{customdata[1]} yrs<extra></extra>" }],
+    { bargap: 0.3, xaxis: { tickprefix: "$" } });
+  const r = [...D.markets].sort((a, b) => b.index - a.index);
+  plot("c_idx", [
+    { type: "bar", name: "Gross (sticker)", y: r.map(x => x.name), x: r.map(x => x.index), orientation: "h", marker: { color: css("--seq-1") },
+      hovertemplate: "%{y} gross %{x:.0f}<extra></extra>" },
+    { type: "bar", name: "Tax-adjusted", y: r.map(x => x.name), x: r.map(x => x.index / (1 + x.vat)), orientation: "h", marker: { color: css("--series-1") },
+      hovertemplate: "%{y} tax-adjusted %{x:.0f}<extra></extra>" },
+  ], { showlegend: true, barmode: "group", bargap: 0.25, bargroupgap: 0.05, yaxis: { autorange: "reversed" },
+       shapes: [{ type: "line", x0: 100, x1: 100, yref: "paper", y0: 0, y1: 1, line: { color: css("--ref"), dash: "dot", width: 1.5 } }] });
+  $("t_mkt").innerHTML = "<table><thead><tr><th>Market</th><th>Gross idx</th><th>VAT/GST</th><th>Net idx</th><th>Avail.</th><th>Size vs US</th><th>Advertisers</th><th>Rev/adv $</th><th>Spend $mm</th><th>Yr3 rev $mm</th><th>NPV $mm</th><th>Payback</th></tr></thead><tbody>" +
+    m.map(x => `<tr><td>${x.name}</td><td>${x.index.toFixed(0)}</td><td>${fmtP(x.vat, 0)}</td><td>${x.net.toFixed(0)}</td><td>${fmtP(x.availability, 0)}</td><td>${fmtP(x.size, 0)}</td><td>${fmtN(x.adv)}</td><td>${fmt$(x.rpa, 0)}</td><td>${fmt$(x.spend, 0)}</td><td>${fmt$(x.rev[2])}</td><td class="${x.npv >= 0 ? "pos" : "neg"}">${fmt$(x.npv)}</td><td>${x.pay == null ? "&gt;3 yrs" : x.pay.toFixed(1) + " yrs"}</td></tr>`).join("") + "</tbody></table>";
+}
+
+function renderSens() {
+  const g = sensGrid(S);
+  const nearest = (arr, v) => arr.reduce((bi, x, i) => Math.abs(x - v) < Math.abs(arr[bi] - v) ? i : bi, 0);
+  const xi = nearest(g.sg, S.spend_g), yi = nearest(g.ag, S.adv_g);
+  plot("c_sens", [{ type: "heatmap", z: g.z, x: g.sg.map(v => fmtP(v, 0)), y: g.ag.map(v => fmtP(v, 0)),
+    colorscale: [[0, css("--seq-0")], [0.4, css("--seq-1")], [0.75, css("--seq-2")], [1, css("--seq-3")]],
+    xgap: 2, ygap: 2, text: g.z.map(r => r.map(v => "$" + Math.round(v).toLocaleString())), texttemplate: "%{text}",
+    textfont: { size: 11 }, showscale: false,
+    hovertemplate: "Adv growth %{y} · spend growth %{x}<br>FY27 revenue %{text}mm<extra></extra>" }],
+    { height: 420, xaxis: { title: "Spend per advertiser growth", type: "category" }, yaxis: { title: "Advertiser growth", type: "category" },
+      shapes: [{ type: "rect", x0: xi - 0.5, x1: xi + 0.5, y0: yi - 0.5, y1: yi + 0.5, line: { color: css("--series-2"), width: 3 } }] });
+}
+
+function renderData() {
+  const r = M.rows;
+  const lab = new Set([...r].sort((a, b) => b.fy - a.fy).slice(0, 6).map(x => x.name).concat(["Medical", "Weather", "Social Networking", "Navigation"]));
+  plot("c_drv", [{ type: "scatter", mode: "markers+text", x: r.map(x => x.share), y: r.map(x => x.wtp), text: r.map(x => lab.has(x.name) ? x.name : ""),
+    meta: r.map(x => x.name),
+    textposition: "top center", textfont: { size: 10, color: css("--text-secondary") },
+    marker: { size: r.map(x => 8 + Math.sqrt(x.fy) * 1.2), color: css("--series-1"), opacity: 0.75, line: { width: 1.5, color: css("--surface") } },
+    customdata: r.map(x => [x.median_paid, x.fy]),
+    hovertemplate: "<b>%{meta}</b><br>engagement share %{x:.1%}<br>WTP index %{y:.2f} (median paid $%{customdata[0]:.2f})<br>FY27 revenue $%{customdata[1]:,.0f}mm<extra></extra>" }],
+    { height: 440, xaxis: { title: "Engagement share (advertiser pool)", tickformat: ".0%", type: "log" }, yaxis: { title: "Willingness-to-pay index" } });
+  $("t_drv").innerHTML = "<table><thead><tr><th>Category</th><th>Engagement share</th><th>Top-grossing free</th><th>Median paid</th><th>WTP index</th><th>FY26 advertisers</th><th>Spend/adv/mo</th><th>FY27 rev $mm</th></tr></thead><tbody>" +
+    [...r].sort((a, b) => b.fy - a.fy).map(x => `<tr><td>${x.name}</td><td>${fmtP(x.share)}</td><td>${fmtP(x.free_share, 0)}</td><td>${fmt$(x.median_paid, 2)}</td><td>${x.wtp.toFixed(2)}</td><td>${fmtN(x.adv0)}</td><td>${fmt$(x.spa, 0)}</td><td>${fmt$(x.fy)}</td></tr>`).join("") + "</tbody></table>";
+}
+
+// ---------- wiring ----------
+function showTab(t) {
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
+  document.querySelectorAll(".pane").forEach(p => p.classList.toggle("on", p.id === "p-" + t));
+  if (M) update(); // re-render so charts in the newly visible pane get their real width
+  try { localStorage.setItem("fpa-tab", t); } catch (e) {}
+}
+document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => showTab(b.dataset.t));
+document.querySelectorAll("#scen button").forEach(b => b.onclick = () => setScenario(b.dataset.s));
+for (const k in CTL) $(k).addEventListener("input", e => { S[k] = parseFloat(e.target.value); $("v_" + k).textContent = CTL[k](S[k]); update(); });
+$("vat").onchange = e => { S.vat = e.target.checked; update(); };
+$("reset").onclick = () => setScenario(S.scen);
+setScenario("Base");
+try { const t = localStorage.getItem("fpa-tab"); if (t) showTab(t); } catch (e) {}
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", update);
+new MutationObserver(update).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+</script>
+</body>
+</html>

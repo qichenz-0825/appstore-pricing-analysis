@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>App Store Pricing</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<style>
+:root {
+  color-scheme: light;
+  --surface: #fcfcfb; --surface-2: #f3f2ee; --border: #e3e1da;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #8a8984;
+  --grid: #ebe9e3;
+  --series-1: #2a78d6; --series-1-soft: #b7d3f6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface: #1a1a19; --surface-2: #232322; --border: #34342f;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+    --grid: #2c2c29;
+    --series-1: #3987e5; --series-1-soft: #184f95;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #1a1a19; --surface-2: #232322; --border: #34342f;
+  --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+  --grid: #2c2c29;
+  --series-1: #3987e5; --series-1-soft: #184f95;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--surface); color: var(--text-primary);
+  font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; }
+main { max-width: 980px; margin: 0 auto; padding: 40px 16px 80px; }
+h1 { font-size: 30px; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 20px; margin: 48px 0 4px; }
+.sub, .note { color: var(--text-secondary); }
+.note { font-size: 13px; margin-top: 4px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 28px 0; }
+.kpi { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.kpi .v { font-size: 28px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.kpi .l { color: var(--text-secondary); font-size: 13px; }
+ul.insights { padding-left: 20px; } ul.insights li { margin: 8px 0; }
+.chart { width: 100%; margin-top: 8px; }
+details { margin-top: 8px; } summary { cursor: pointer; color: var(--text-secondary); font-size: 13px; }
+.tw { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 13px; margin-top: 8px; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 5px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--text-secondary); font-weight: 600; }
+footer { margin-top: 56px; color: var(--text-muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>App Store Pricing Analysis</h1>
+  <div class="sub">US App Store top charts across {{N_CATS}} categories · {{N_PAID}} paid apps priced in 10 storefronts · data pulled {{DATE}}</div>
+
+  <div class="kpis">{{KPIS}}</div>
+
+  <h2>Key findings</h2>
+  <ul class="insights">{{INSIGHTS}}</ul>
+
+  <h2>What this means for Apple Ads</h2>
+  <ul class="insights">{{IMPLICATIONS}}</ul>
+
+  <h2>1 · Free‑to‑download apps dominate revenue</h2>
+  <div class="note">Share of each category's Top Grossing chart that costs $0 upfront. Dotted line = all categories.</div>
+  <div class="chart" id="freemium"></div>
+  <details><summary>Table</summary>{{T_FREEMIUM}}</details>
+
+  <h2>2 · Price points cluster at .99</h2>
+  <div class="note">The 15 most common prices among apps in the Top Paid charts.</div>
+  <div class="chart" id="points"></div>
+
+  <h2>3 · Paid price by category</h2>
+  <div class="note">Median and interquartile range for Top Paid apps (categories with ≥ 5 apps).</div>
+  <div class="chart" id="category"></div>
+  <details><summary>Table</summary>{{T_CAT}}</details>
+
+  <h2>4 · Does price affect chart rank?</h2>
+  <div class="note">Top Paid listings split into price quartiles; median chart position in each.</div>
+  <div class="chart" id="bands"></div>
+  <details open><summary>Table</summary>{{T_BANDS}}</details>
+
+  <h2>5 · Same app, different country</h2>
+  <div class="note">For each paid US app, its local price elsewhere converted to USD and indexed to the US price (100). Median across apps. Note: UK/EU/JP/AU/IN/KR prices include VAT/GST; US and Canada prices exclude sales tax.</div>
+  <div class="chart" id="intl"></div>
+  <details><summary>Table</summary>{{T_INTL}}</details>
+
+  <h2>6 · Maintenance and maturity by chart</h2>
+  <div class="note">Paid apps vs. free and top‑grossing apps: update cadence, age, ratings.</div>
+  {{T_MAINT}}
+
+  <footer>Source: Apple iTunes RSS top charts & iTunes Lookup API (public). FX: ECB reference rates via frankfurter.app.
+  Limitations: chart snapshots reflect one day; search/charts exclude in‑app purchase prices; ratings are the storefront's lifetime averages.</footer>
+</main>
+<script>
+const FIGS = {{FIGS}};
+function resolve(o, cs) {
+  if (typeof o === "string" && o.startsWith("--")) return cs.getPropertyValue(o).trim() || o;
+  if (Array.isArray(o)) return o.map(x => resolve(x, cs));
+  if (o && typeof o === "object") { const r = {}; for (const k in o) r[k] = resolve(o[k], cs); return r; }
+  return o;
+}
+function render() {
+  const cs = getComputedStyle(document.documentElement);
+  const v = n => cs.getPropertyValue(n).trim();
+  const base = {
+    paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
+    font: { family: getComputedStyle(document.body).fontFamily, size: 12, color: v("--text-secondary") },
+    margin: { l: 10, r: 40, t: 10, b: 50 }, showlegend: false,
+    hoverlabel: { bgcolor: v("--surface-2"), bordercolor: v("--border"), font: { color: v("--text-primary") } },
+  };
+  const axis = { gridcolor: v("--grid"), zerolinecolor: v("--border"), linecolor: v("--border"), automargin: true };
+  for (const [id, f] of Object.entries(FIGS)) {
+    const el = document.getElementById(id); if (!el) continue;
+    const fig = resolve(f, cs);
+    fig.data.forEach(t => { if (t.type === "bar" && t.text) t.textfont = { color: v("--text-primary") }; });
+    const L = Object.assign({}, base, fig.layout);
+    L.xaxis = Object.assign({}, axis, fig.layout.xaxis || {});
+    L.yaxis = Object.assign({}, axis, fig.layout.yaxis || {});
+    if (L.yaxis.automargin && fig.data[0].orientation === "h") L.yaxis.gridcolor = "rgba(0,0,0,0)";
+    Plotly.react(el, fig.data, L, { displayModeBar: false, responsive: true });
+  }
+}
+render();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+</script>
+</body>
+</html>
