@@ -9,6 +9,8 @@ An end‑to‑end finance project. It pulls live pricing data for **5,805 apps**
 - an interactive dashboard
 - an executive summary
 
+**Live:** [Interactive FP&A dashboard](https://qichenz-0825.github.io/appstore-pricing-analysis/reports/dashboard.html) · [Pricing analysis report](https://qichenz-0825.github.io/appstore-pricing-analysis/reports/report.html) · [Executive summary](reports/Executive_Summary.md)
+
 > Apple does not disclose Apple Ads revenue, advertisers or costs. All financial inputs are **illustrative** and are clearly marked (blue cells in Excel). The App Store data, the methods and the model structure are real.
 
 ## Deliverables
@@ -22,7 +24,7 @@ An end‑to‑end finance project. It pulls live pricing data for **5,805 apps**
 | [`reports/tableau/`](reports/tableau) | Tidy extracts ready for Tableau |
 | [`reports/tables/`](reports/tables) | Every analysis table as CSV |
 
-The two HTML pages load Plotly from a CDN. Download them and open them in a browser; GitHub shows only their source.
+Both HTML pages are also served on GitHub Pages (see the **Live** links above).
 
 ## How the project maps to the Apple Ads Financial Analyst role
 
