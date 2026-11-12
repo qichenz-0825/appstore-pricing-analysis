@@ -18,6 +18,10 @@ DATA = ROOT / "data"
 OUT = ROOT / "reports"
 TABLES = OUT / "tables"
 
+# Standard VAT/GST rates embedded in storefront prices (US & Canada list prices exclude sales tax)
+VAT = {"us": 0.0, "ca": 0.0, "gb": 0.20, "de": 0.19, "jp": 0.10, "au": 0.10, "in": 0.18,
+       "kr": 0.10, "br": 0.0, "cn": 0.06}
+
 COUNTRY_NAMES = {"us": "United States", "gb": "United Kingdom", "de": "Germany", "jp": "Japan",
                  "cn": "China", "in": "India", "br": "Brazil", "au": "Australia",
                  "ca": "Canada", "kr": "South Korea"}
@@ -113,6 +117,8 @@ def intl_index(intl, apps, fx):
     t["country_name"] = t.index.map(COUNTRY_NAMES)
     # availability: share of US paid apps also sold there
     t["availability"] = t.apps / len(us)
+    t["vat_rate"] = t.index.map(VAT).fillna(0.0)
+    t["net_index"] = t.median_index / (1 + t.vat_rate)
     return t.round(3), intl
 
 
@@ -179,11 +185,23 @@ def build_report(apps, charts, df, fm, counts, charm, paid, cat, rho, bands, mai
                                 "yaxis": {"title": "Median chart rank (lower = better)"},
                                 "height": 340, "bargap": 0.35}}
 
-    figs["intl"] = fig_bar_h(
-        [f"{r.country_name} ({r.currency})" for r in idx.itertuples()],
-        idx.median_index.round(1).tolist(), "Price index", "{:.0f}",
-        "%{y}: median %{x:.0f} (US = 100)", "Median price of the same app, USD‑converted (US = 100)",
-        ref=100)
+    ix = idx.sort_values("net_index")
+    labels = [f"{r.country_name} ({r.currency})" for r in ix.itertuples()]
+    figs["intl"] = {
+        "data": [{"type": "bar", "orientation": "h", "y": labels, "x": ix.median_index.round(1).tolist(),
+                  "name": "Sticker price (tax‑inclusive where applicable)", "marker": {"color": "--series-1-soft"},
+                  "customdata": (ix.vat_rate * 100).round(0).tolist(),
+                  "hovertemplate": "%{y}<br>sticker index %{x:.0f} · VAT/GST %{customdata:.0f}%<extra></extra>"},
+                 {"type": "bar", "orientation": "h", "y": labels, "x": ix.net_index.round(1).tolist(),
+                  "name": "Tax‑adjusted", "marker": {"color": "--series-1"},
+                  "text": [f"{v:.0f}" for v in ix.net_index], "textposition": "outside", "cliponaxis": False,
+                  "hovertemplate": "%{y}<br>tax‑adjusted index %{x:.0f}<extra></extra>"}],
+        "layout": {"xaxis": {"title": "Median price of the same app, USD‑converted (US = 100)", "range": [0, 150]},
+                   "yaxis": {"automargin": True}, "barmode": "group", "bargap": 0.3, "bargroupgap": 0.06,
+                   "height": max(360, 46 * len(labels) + 100), "showlegend": True,
+                   "legend": {"orientation": "h", "y": 1.02, "yanchor": "bottom", "x": 0},
+                   "shapes": [{"type": "line", "x0": 100, "x1": 100, "yref": "paper", "y0": 0, "y1": 1,
+                               "line": {"dash": "dot", "width": 1.5, "color": "--text-muted"}}]}}
 
     def tbl(d, fmts):
         head = "".join(f"<th>{c}</th>" for c in [d.index.name or ""] + list(fmts))
@@ -193,6 +211,8 @@ def build_report(apps, charts, df, fm, counts, charm, paid, cat, rho, bands, mai
         return f"<div class='tw'><table><thead><tr>{head}</tr></thead><tbody>{rows}</tbody></table></div>"
 
     cheapest, priciest = idx.iloc[0], idx.iloc[-1]
+    gb = idx.loc["gb"] if "gb" in idx.index else priciest
+    net_sorted = idx.sort_values("net_index")
     maint_named = maint.rename(index={"top_free": "Top Free", "top_paid": "Top Paid",
                                       "top_grossing": "Top Grossing"})
     pooled_rho = df[(df.chart == "top_paid") & (df.price > 0)][["rank", "price"]].corr("spearman").iloc[0, 1]
@@ -210,7 +230,10 @@ def build_report(apps, charts, df, fm, counts, charm, paid, cat, rho, bands, mai
         f"<b>Regional pricing.</b> The same app is cheapest in {cheapest.country_name} "
         f"(index {cheapest.median_index:.0f}) and most expensive in {priciest.country_name} "
         f"(index {priciest.median_index:.0f}) after converting to USD. Much of the gap is tax: "
-        f"UK/EU/JP/AU prices include VAT/GST while US prices do not.",
+        f"UK/EU/JP/AU prices include VAT/GST while US prices do not. The UK sticker index of "
+        f"{gb.median_index:.0f} falls to {gb.net_index:.0f} once VAT is removed; tax‑adjusted, indices range "
+        f"from {net_sorted.net_index.iloc[0]:.0f} ({net_sorted.country_name.iloc[0]}) to "
+        f"{net_sorted.net_index.iloc[-1]:.0f} ({net_sorted.country_name.iloc[-1]}).",
         "<b>Paid apps are a long tail.</b> Median Top Paid app is updated every "
         f"{maint.loc['top_paid','median_days_since_update']:.0f} days vs "
         f"{maint.loc['top_free','median_days_since_update']:.0f} for Top Free, with far fewer ratings — "
@@ -246,9 +269,10 @@ def build_report(apps, charts, df, fm, counts, charm, paid, cat, rho, bands, mai
         "{{T_MAINT}}": tbl(maint_named, {"apps": "{:.0f}", "median_days_since_update": "{:.0f}",
                                          "share_updated_90d": "{:.0%}", "median_age_years": "{:.1f}",
                                          "median_rating": "{:.2f}", "median_reviews": "{:,.0f}"}),
-        "{{T_INTL}}": tbl(idx.set_index("country_name").sort_values("median_index"),
+        "{{T_INTL}}": tbl(idx.set_index("country_name").sort_values("net_index"),
                          {"currency": "{}", "apps": "{:.0f}", "availability": "{:.0%}",
-                          "median_index": "{:.0f}", "p25": "{:.0f}", "p75": "{:.0f}"}),
+                          "median_index": "{:.0f}", "vat_rate": "{:.0%}", "net_index": "{:.0f}",
+                          "p25": "{:.0f}", "p75": "{:.0f}"}),
         "{{N_PAID}}": f"{n_paid:,}",
         "{{N_CATS}}": str(charts.chart_genre.nunique()),
     }
