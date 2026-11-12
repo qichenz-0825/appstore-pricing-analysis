@@ -12,7 +12,7 @@
 | Operating margin | 66.3% | **69.3%** | 71.0% |
 
 - **Q1 FY27 came in $25.0mm (−1.7%) below budget.** Volume was favorable: advertiser count added +$2.5mm. Rate was unfavorable: spend per advertiser cost −$27.5mm. The miss is a monetization issue rather than an acquisition issue. Largest swings: Finance (+$15.8mm), Games (−$12.0mm), Travel (−$10.9mm).
-- **Investment priority:** at Base assumptions, the next sales dollar earns the most in **China** (3‑yr NPV $87.3mm), then **Japan** ($72.0mm) and the **UK** ($65.6mm). All 9 markets are NPV‑positive. Apple Ads availability and regulation by storefront are *not* modeled and must be checked before acting on this.
+- **Investment priority:** at Base assumptions, the next sales dollar earns the most in **Japan** (3‑yr NPV $72.0mm), then the **UK** ($65.6mm) and **mainland China** ($50.5mm). All 9 markets are NPV‑positive. China is the largest addressable market before approval constraints, but advertisers there must get business and app approval (licenses, industry qualifications) before ads run. The model assumes 70% of advertisers clear it. At 100%, China would rank first ($87.3mm), so the approval rate is the swing factor.
 - **Headcount:** the plan exits FY27 at 2,019 HC (+219), with $677mm of people cost and $175mm of capex.
 
 ## What the App Store data says about ad demand
@@ -33,6 +33,6 @@
 
 1. Rebase the Q2–Q4 rate assumption by holding spend per advertiser at the Q1 actual level. Show the resulting gap to the annual plan.
 2. Run a deep dive on unfavorable rate variance in Games and Travel: cost per tap (CPT) trends, budget caps and the competitive set.
-3. Advance the China and Japan investment cases to a full business case, including regulatory review, local sales cost and ramp risk.
+3. Build a full business case for Japan and the UK. For China, first validate the advertiser approval pass rate: it decides whether China ranks first or third.
 
 *Model: `reports/Apple_Ads_FPA_Model.xlsx` (live formulas; change the scenario in Assumptions!B3). Interactive version: `reports/dashboard.html`.*

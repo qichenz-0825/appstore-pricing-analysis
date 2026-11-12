@@ -337,7 +337,8 @@
    "index": 133.069,
    "availability": 0.965,
    "vat": 0.2,
-   "size": 0.12
+   "size": 0.12,
+   "eligible": 1.0
   },
   {
    "code": "kr",
@@ -346,7 +347,8 @@
    "index": 117.711,
    "availability": 0.932,
    "vat": 0.1,
-   "size": 0.06
+   "size": 0.06,
+   "eligible": 1.0
   },
   {
    "code": "br",
@@ -355,7 +357,8 @@
    "index": 112.396,
    "availability": 0.94,
    "vat": 0.0,
-   "size": 0.06
+   "size": 0.06,
+   "eligible": 1.0
   },
   {
    "code": "de",
@@ -364,7 +367,8 @@
    "index": 111.271,
    "availability": 0.92,
    "vat": 0.19,
-   "size": 0.09
+   "size": 0.09,
+   "eligible": 1.0
   },
   {
    "code": "au",
@@ -373,7 +377,8 @@
    "index": 109.829,
    "availability": 0.965,
    "vat": 0.1,
-   "size": 0.05
+   "size": 0.05,
+   "eligible": 1.0
   },
   {
    "code": "in",
@@ -382,7 +387,8 @@
    "index": 106.735,
    "availability": 0.942,
    "vat": 0.18,
-   "size": 0.07
+   "size": 0.07,
+   "eligible": 1.0
   },
   {
    "code": "cn",
@@ -391,7 +397,8 @@
    "index": 105.2,
    "availability": 0.715,
    "vat": 0.06,
-   "size": 0.22
+   "size": 0.22,
+   "eligible": 0.7
   },
   {
    "code": "jp",
@@ -400,7 +407,8 @@
    "index": 98.83,
    "availability": 0.95,
    "vat": 0.1,
-   "size": 0.16
+   "size": 0.16,
+   "eligible": 1.0
   },
   {
    "code": "ca",
@@ -409,7 +417,8 @@
    "index": 93.705,
    "availability": 0.978,
    "vat": 0.0,
-   "size": 0.07
+   "size": 0.07,
+   "eligible": 1.0
   }
  ],
  "invest": {

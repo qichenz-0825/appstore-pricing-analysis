@@ -33,7 +33,7 @@ Both HTML pages are also served on GitHub Pages (see the **Live** links above).
 | Forecasting, annual planning | `Revenue_Forecast`: FY27 monthly plan by category = advertisers × spend/advertiser × seasonality, with Base / Upside / Downside scenarios |
 | Headcount, cost, capital expenditures | `Opex_Headcount`: hiring plan by function, fully‑loaded cost, non‑HC opex, capex with straight‑line depreciation |
 | Month‑end / quarter close, variance analysis | `Budget_vs_Actual`: Q1 variance split into **volume** (advertisers) and **rate** (spend/advertiser), with a reconciliation check and top drivers |
-| Evaluate the financial impact of business decisions | `Market_Investment`: 3‑year NPV and payback for incremental sales investment by storefront, sized with a tax‑adjusted price index |
+| Evaluate the financial impact of business decisions | `Market_Investment`: 3‑year NPV and payback for incremental sales investment by storefront, sized with a tax‑adjusted price index and an advertiser‑eligibility haircut for mainland China's approval requirement |
 | Analyze costs, optimize profitability | `PnL_Summary`: quarterly P&L, operating margin, revenue per employee |
 | Present findings to senior leadership | `Executive_Summary.md` and the `Dashboard` tab |
 | Ad hoc analysis and decision support | `Sensitivity` grid plus the dashboard's live sliders |
@@ -57,7 +57,7 @@ Monthly revenue       = advertisers × (1+g_adv)^(m/12) × spend × (1+g_spend)^
 Volume variance       = (Actual adv − Budget adv) × Budget rev/adv
 Rate variance         = (Actual rev/adv − Budget rev/adv) × Actual adv
 Market NPV            = −upfront + Σ (revenue_t × margin − opex) / (1+r)^t,
-                        revenue = advertisers × US rev/adv × tax‑adjusted price index × capture_t
+                        revenue = advertisers × eligibility × US rev/adv × tax‑adjusted price index × capture_t
 ```
 
 The dashboard runs the same formulas in JavaScript. It was checked against the Excel model: the Base case matches to the cent.
@@ -89,4 +89,4 @@ python3 src/export_tableau.py   # reports/tableau/*.csv
 - In‑app purchase and subscription prices are not exposed by these endpoints.
 - VAT/GST rates are standard headline rates; verify them against Apple's tax schedule.
 - Q1 "actuals" are simulated around the budget (seeded) to demonstrate the variance workflow.
-- Regulatory availability of Apple Ads by storefront is not modeled.
+- All 9 storefronts are Apple Ads markets. Mainland China requires advertiser business and app approval ([Apple Ads Help](https://ads.apple.com/app-store/help/get-started/0074-advertise-in-mainland-china)); this is modeled as an illustrative 70% eligibility haircut, adjustable in Excel and on the dashboard.

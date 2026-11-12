@@ -116,6 +116,10 @@ def intl_data():
 VAT = {"gb": 0.20, "de": 0.19, "jp": 0.10, "au": 0.10, "in": 0.18, "kr": 0.10,
        "br": 0.0, "cn": 0.06, "ca": 0.0}
 
+# Share of addressable advertisers able to run ads. Mainland China requires business + app
+# approval (licenses, industry qualifications) - illustrative haircut.
+ELIGIBLE = {"cn": 0.70}
+
 # Illustrative storefront size vs US (share of US advertiser base addressable there)
 MARKET_SIZE = {"gb": 0.12, "de": 0.09, "jp": 0.16, "cn": 0.22, "in": 0.07,
                "br": 0.06, "au": 0.05, "ca": 0.07, "kr": 0.06}
@@ -531,7 +535,7 @@ def build():
     hdr(mi, 12, ["Country", "Price index (US=100)", "VAT/GST in local price", "Net price index",
                  "Availability", "Market size vs US", "Addressable advertisers", "Rev / adv ($)",
                  "Addressable spend ($mm)", "Yr1 rev ($mm)", "Yr2 rev ($mm)", "Yr3 rev ($mm)",
-                 "NPV ($mm)", "Payback (yrs)", "Rank"])
+                 "NPV ($mm)", "Payback (yrs)", "Rank", "Advertiser eligibility"])
     M_FIRST = 13
     for i, row in enumerate(intl.itertuples()):
         r, dr = M_FIRST + i, INTL_FIRST + i
@@ -544,7 +548,12 @@ def build():
         put(mi, f"E{r}", f"=Data!E{dr}", GREEN, PCT)
         put(mi, f"F{r}", MARKET_SIZE.get(row.country, 0.05), BLUE, PCT,
             comment="Illustrative: storefront developer/advertiser base relative to US.")
-        put(mi, f"G{r}", f"=$B$5*F{r}*E{r}", BLACK, NUM)
+        put(mi, f"P{r}", ELIGIBLE.get(row.country, 1.0), BLUE, PCT, KEY_FILL if row.country in ELIGIBLE else None,
+            comment=("Mainland China requires advertiser business + app approval (licenses, industry "
+                     "qualifications) before ads run - see Apple Ads Help 'Advertise in mainland China'. "
+                     "Share of advertisers assumed to clear approval is illustrative.")
+            if row.country == "cn" else "Share of addressable advertisers able to run ads (no extra approval).")
+        put(mi, f"G{r}", f"=$B$5*F{r}*E{r}*P{r}", BLACK, NUM)
         put(mi, f"H{r}", f"=$B$4*D{r}/100", BLACK, USD)
         put(mi, f"I{r}", f"=G{r}*H{r}/1000000", BLACK, USD_MM)
         put(mi, f"J{r}", f"=I{r}*$B$9", BLACK, USD_MM)
@@ -568,7 +577,9 @@ def build():
         f'MATCH(2,O{M_FIRST}:O{M_LAST},0))&"."')
     put(mi, f"A{M_LAST + 3}", "Gross price index is tax-inclusive outside US/CA; the net index strips VAT/GST so "
                               "willingness-to-pay is compared like-for-like.", NOTE)
-    widths(mi, {"A": 44, **{L(c): 13 for c in range(2, 16)}})
+    put(mi, f"A{M_LAST + 4}", "All 9 storefronts are Apple Ads markets. Mainland China requires advertiser business and "
+                              "app approval before ads run, reflected by the eligibility haircut in column P.", NOTE)
+    widths(mi, {"A": 44, **{L(c): 13 for c in range(2, 17)}})
 
     # ================= Sensitivity =================
     s = wb.create_sheet("Sensitivity")
@@ -653,7 +664,8 @@ def build():
         "actuals": actuals,
         "markets": [{"code": r.country, "name": r.country_name, "currency": r.currency,
                      "index": float(r.median_index), "availability": float(r.availability),
-                     "vat": VAT.get(r.country, 0.0), "size": MARKET_SIZE.get(r.country, 0.05)}
+                     "vat": VAT.get(r.country, 0.0), "size": MARKET_SIZE.get(r.country, 0.05),
+                     "eligible": ELIGIBLE.get(r.country, 1.0)}
                     for r in intl.itertuples()],
         "invest": {"upfront": 15, "opex": 8, "capture": [0.04, 0.08, 0.12], "margin": 0.80},
     }

@@ -104,6 +104,7 @@ a { color: var(--series-1); }
     <h3>Market investment</h3>
     <div class="ctl"><label>Share capture (yr 3) <b id="v_cap"></b></label><input type="range" id="cap" min="0.02" max="0.25" step="0.01"></div>
     <div class="ctl"><label>Upfront cost / market ($mm) <b id="v_upfront"></b></label><input type="range" id="upfront" min="0" max="60" step="1"></div>
+    <div class="ctl"><label>China advertiser eligibility <b id="v_cn_elig"></b></label><input type="range" id="cn_elig" min="0.3" max="1" step="0.05"></div>
     <label class="chk"><input type="checkbox" id="vat" checked> Strip VAT/GST from price index</label>
     <button class="reset" id="reset">Reset to scenario</button>
   </aside>
@@ -156,7 +157,7 @@ a { color: var(--series-1); }
     </section>
   </main>
 </div>
-<footer>Sources: Apple iTunes RSS top charts &amp; Lookup API; ECB FX. Apple does not disclose Apple Ads financials — revenue, advertiser, cost and actuals inputs are illustrative. Regulatory availability of Apple Ads by storefront is not modeled.</footer>
+<footer>Sources: Apple iTunes RSS top charts &amp; Lookup API; ECB FX. Apple does not disclose Apple Ads financials — revenue, advertiser, cost and actuals inputs are illustrative. All 9 storefronts are Apple Ads markets; mainland China requires advertiser business and app approval before ads run, modeled as an eligibility haircut (adjustable).</footer>
 
 <script>
 const D = {
@@ -498,7 +499,8 @@ const D = {
    "index": 133.069,
    "availability": 0.965,
    "vat": 0.2,
-   "size": 0.12
+   "size": 0.12,
+   "eligible": 1.0
   },
   {
    "code": "kr",
@@ -507,7 +509,8 @@ const D = {
    "index": 117.711,
    "availability": 0.932,
    "vat": 0.1,
-   "size": 0.06
+   "size": 0.06,
+   "eligible": 1.0
   },
   {
    "code": "br",
@@ -516,7 +519,8 @@ const D = {
    "index": 112.396,
    "availability": 0.94,
    "vat": 0.0,
-   "size": 0.06
+   "size": 0.06,
+   "eligible": 1.0
   },
   {
    "code": "de",
@@ -525,7 +529,8 @@ const D = {
    "index": 111.271,
    "availability": 0.92,
    "vat": 0.19,
-   "size": 0.09
+   "size": 0.09,
+   "eligible": 1.0
   },
   {
    "code": "au",
@@ -534,7 +539,8 @@ const D = {
    "index": 109.829,
    "availability": 0.965,
    "vat": 0.1,
-   "size": 0.05
+   "size": 0.05,
+   "eligible": 1.0
   },
   {
    "code": "in",
@@ -543,7 +549,8 @@ const D = {
    "index": 106.735,
    "availability": 0.942,
    "vat": 0.18,
-   "size": 0.07
+   "size": 0.07,
+   "eligible": 1.0
   },
   {
    "code": "cn",
@@ -552,7 +559,8 @@ const D = {
    "index": 105.2,
    "availability": 0.715,
    "vat": 0.06,
-   "size": 0.22
+   "size": 0.22,
+   "eligible": 0.7
   },
   {
    "code": "jp",
@@ -561,7 +569,8 @@ const D = {
    "index": 98.83,
    "availability": 0.95,
    "vat": 0.1,
-   "size": 0.16
+   "size": 0.16,
+   "eligible": 1.0
   },
   {
    "code": "ca",
@@ -570,7 +579,8 @@ const D = {
    "index": 93.705,
    "availability": 0.978,
    "vat": 0.0,
-   "size": 0.07
+   "size": 0.07,
+   "eligible": 1.0
   }
  ],
  "invest": {
@@ -596,12 +606,13 @@ function setScenario(name) {
   const s = D.scenarios[name];
   S = { scen: name, adv_g: s.adv_g, spend_g: s.spend_g, nonhc: s.nonhc, disc: s.disc,
         advertisers: D.advertisers, spend: D.spend, slope: D.mult_slope, hire: 1,
-        cap: D.invest.capture[2], upfront: D.invest.upfront, vat: true };
+        cap: D.invest.capture[2], upfront: D.invest.upfront, vat: true,
+        cn_elig: (D.markets.find(m => m.code === "cn") || {}).eligible ?? 1 };
   document.querySelectorAll("#scen button").forEach(b => b.classList.toggle("on", b.dataset.s === name));
   syncControls(); update();
 }
 const CTL = { adv_g: fmtP, spend_g: fmtP, nonhc: fmtP, advertisers: fmtN, spend: v => fmt$(v, 0),
-              slope: v => v.toFixed(2), hire: v => v.toFixed(1) + "×", cap: fmtP, upfront: v => fmt$(v, 0) };
+              slope: v => v.toFixed(2), hire: v => v.toFixed(1) + "×", cap: fmtP, upfront: v => fmt$(v, 0), cn_elig: v => fmtP(v, 0) };
 function syncControls() {
   for (const k in CTL) { $(k).value = S[k]; $("v_" + k).textContent = CTL[k](S[k]); }
   $("vat").checked = S.vat;
@@ -658,13 +669,14 @@ function model(p) {
   const cap = [p.cap / 3, p.cap * 2 / 3, p.cap];
   const mkts = D.markets.map(m => {
     const net = p.vat ? m.index / (1 + m.vat) : m.index;
-    const adv = A * m.size * m.availability, rpa = usRpa * net / 100, spend = adv * rpa / 1e6;
+    const elig = m.code === "cn" ? p.cn_elig : (m.eligible ?? 1);
+    const adv = A * m.size * m.availability * elig, rpa = usRpa * net / 100, spend = adv * rpa / 1e6;
     const rev = cap.map(c => spend * c);
     const cf = rev.map(r => r * D.invest.margin - D.invest.opex);
     const npv = -p.upfront + sum(cf.map((c, t) => c / Math.pow(1 + p.disc, t + 1)));
     let pay = null, cum = 0;
     for (let t = 0; t < 3; t++) { if (cf[t] > 0 && cum + cf[t] >= p.upfront) { pay = t + (p.upfront - cum) / cf[t]; break; } cum += cf[t]; }
-    return { ...m, net, adv, rpa, spend, rev, npv, pay };
+    return { ...m, net, elig, adv, rpa, spend, rev, npv, pay };
   }).sort((a, b) => b.npv - a.npv);
 
   return { rows, months, advM, revQ, fy, runrate, hcEnd, people, dep, nonhc, oi, bva, mkts, usRpa };
@@ -792,7 +804,7 @@ function renderMkt() {
   $("mkt_text").innerHTML = `<b>Recommendation:</b> prioritize <b>${m[0].name}</b> (NPV ${fmt$(m[0].npv)}mm` +
     (m[0].pay != null ? `, payback ${m[0].pay.toFixed(1)} yrs` : "") + `), then ${m[1].name} and ${m[2].name}. ` +
     `${m.filter(x => x.npv < 0).length} of ${m.length} markets are NPV-negative at current settings. ` +
-    (S.vat ? "Index is VAT/GST-adjusted." : "<b>Warning:</b> using tax-inclusive sticker prices overstates UK/EU/APAC willingness-to-pay.");
+    `China assumes ${fmtP(S.cn_elig, 0)} of advertisers clear mainland approval. ` + (S.vat ? "Index is VAT/GST-adjusted." : "<b>Warning:</b> using tax-inclusive sticker prices overstates UK/EU/APAC willingness-to-pay.");
   const s = [...m].sort((a, b) => a.npv - b.npv);
   plot("c_npv", [{ type: "bar", orientation: "h", y: s.map(x => x.name), x: s.map(x => x.npv),
     marker: { color: s.map(x => x.npv >= 0 ? css("--series-1") : css("--neg")) },
@@ -807,8 +819,8 @@ function renderMkt() {
       hovertemplate: "%{y} tax-adjusted %{x:.0f}<extra></extra>" },
   ], { showlegend: true, barmode: "group", bargap: 0.25, bargroupgap: 0.05, yaxis: { autorange: "reversed" },
        shapes: [{ type: "line", x0: 100, x1: 100, yref: "paper", y0: 0, y1: 1, line: { color: css("--ref"), dash: "dot", width: 1.5 } }] });
-  $("t_mkt").innerHTML = "<table><thead><tr><th>Market</th><th>Gross idx</th><th>VAT/GST</th><th>Net idx</th><th>Avail.</th><th>Size vs US</th><th>Advertisers</th><th>Rev/adv $</th><th>Spend $mm</th><th>Yr3 rev $mm</th><th>NPV $mm</th><th>Payback</th></tr></thead><tbody>" +
-    m.map(x => `<tr><td>${x.name}</td><td>${x.index.toFixed(0)}</td><td>${fmtP(x.vat, 0)}</td><td>${x.net.toFixed(0)}</td><td>${fmtP(x.availability, 0)}</td><td>${fmtP(x.size, 0)}</td><td>${fmtN(x.adv)}</td><td>${fmt$(x.rpa, 0)}</td><td>${fmt$(x.spend, 0)}</td><td>${fmt$(x.rev[2])}</td><td class="${x.npv >= 0 ? "pos" : "neg"}">${fmt$(x.npv)}</td><td>${x.pay == null ? "&gt;3 yrs" : x.pay.toFixed(1) + " yrs"}</td></tr>`).join("") + "</tbody></table>";
+  $("t_mkt").innerHTML = "<table><thead><tr><th>Market</th><th>Gross idx</th><th>VAT/GST</th><th>Net idx</th><th>Avail.</th><th>Size vs US</th><th>Eligible</th><th>Advertisers</th><th>Rev/adv $</th><th>Spend $mm</th><th>Yr3 rev $mm</th><th>NPV $mm</th><th>Payback</th></tr></thead><tbody>" +
+    m.map(x => `<tr><td>${x.name}</td><td>${x.index.toFixed(0)}</td><td>${fmtP(x.vat, 0)}</td><td>${x.net.toFixed(0)}</td><td>${fmtP(x.availability, 0)}</td><td>${fmtP(x.size, 0)}</td><td>${fmtP(x.elig, 0)}</td><td>${fmtN(x.adv)}</td><td>${fmt$(x.rpa, 0)}</td><td>${fmt$(x.spend, 0)}</td><td>${fmt$(x.rev[2])}</td><td class="${x.npv >= 0 ? "pos" : "neg"}">${fmt$(x.npv)}</td><td>${x.pay == null ? "&gt;3 yrs" : x.pay.toFixed(1) + " yrs"}</td></tr>`).join("") + "</tbody></table>";
 }
 
 function renderSens() {
